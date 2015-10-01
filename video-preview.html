@@ -1,0 +1,153 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="video-preview">
+
+    <template>
+        <style>
+            :host {
+                display: block;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+
+            :host #wrapper{
+                display: inline-block;
+                position: relative
+            }
+
+            :host #roll{
+                overflow: hidden;
+                position: absolute;
+                top: 0; left: 0; right: 0; height: 100%;
+                opacity: 0;
+            }
+
+            :host ::content img{
+                display: block;
+            }
+
+        </style>
+
+        <div id="wrapper">
+            <div id="roll"></div>
+
+            <div id="content">
+                <content></content>
+            </div>
+        </div>
+
+    </template>
+
+    <script>
+
+        Polymer({
+            is: 'video-preview',
+
+            properties: {
+                stepWidth: Number,
+                steps: Number,
+                percentage: Number,
+                value: Number,
+                img: Object,
+
+                roll: {
+                    type: String,
+                    reflectToAttribute: true
+                }
+            },
+
+            detached: function(){
+                this.img.removeEventListener('mousemove', this.mouseMove);
+                this.img.removeEventListener('mouseleave', this.mouseLeave);
+            },
+
+            attached: function(){
+
+                if(!this.roll) return;
+
+                this.img = Polymer.dom(this).querySelector('img');
+
+                this.$.roll.addEventListener('mouseenter', this.mouseEnter.bind(this));
+                this.$.roll.addEventListener('mousemove', this.mouseMove.bind(this));
+                this.$.roll.addEventListener('mouseleave', this.mouseLeave.bind(this));
+
+                this.createRoll();
+            },
+
+
+            mouseEnter: function(){
+                this.$.roll.style.opacity = 1;
+            },
+
+            mouseLeave: function(){
+                this.value = 1;
+                this.percentage = 100;
+                this.updateDisplay(0);
+                this.$.roll.style.opacity = 0;
+            },
+
+            mouseMove: function(event){
+
+                var image = {left: this.img.offsetLeft, top: this.img.offsetTop}
+                  , mouse = {x: event.pageX, y: event.pageY}
+                  , cursor = {x: mouse.x - image.left, y: mouse.y - image.top};
+
+                this.frame(cursor.x);
+            },
+
+
+            frame: function(x){
+                var width = this.img.clientWidth;
+
+                this.value = parseFloat((x / width).toFixed(2));
+                this.percentage = Math.round(this.value * 100);
+
+                console.log(this.percentage);
+
+                this.updateDisplay();
+            },
+
+            // backgroundPositionX is buggy in FF
+            // http://stackoverflow.com/questions/13948617/backgroundpositionx-not-working-on-firefox
+            // solution backgroundPosition "x y"
+            updateDisplay: function(v){
+                v = (v != undefined) ? v :  this.stepWidth * Math.round(this.steps * -this.value);
+                this.$.roll.style.backgroundPosition = v + 'px 0';
+            },
+
+            createRoll: function(){
+
+                var large = new Image()
+                  , small = new Image()
+                  , largeWidth, smallWidth;
+
+                small.onload = function(){
+                    smallWidth = small.width;
+                    this.findStep(largeWidth, smallWidth);
+                }.bind(this);
+
+                large.onload = function(){
+                    this.$.roll.style.backgroundImage = "url('" + this.roll + "')";
+                    largeWidth = large.width;
+                    this.findStep(largeWidth, smallWidth);
+                }.bind(this);
+
+                large.src = this.roll;
+                small.src = this.img.getAttribute('src');
+            },
+
+            findStep: function(rollWidth, srcWidth){
+                if(!rollWidth || !srcWidth) return;
+
+                this.stepWidth = this.img.clientWidth;
+
+                this.steps = Math.round(rollWidth / this.stepWidth);
+
+                console.log(rollWidth, this.stepWidth, this.steps);
+            }
+
+        });
+
+    </script>
+
+</dom-module>
