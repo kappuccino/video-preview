@@ -1,0 +1,21 @@
+{
+  "name": "video-preview",
+  "version": "1.0.1",
+  "homepage": "https://github.com/kappuccino/video-preview",
+  "authors": [
+    "Benjamin Mosnier <bm@kappuccino.org>"
+  ],
+  "description": "",
+  "main": "video-preview.html",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.1.0"
+  }
+}
